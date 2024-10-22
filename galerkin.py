@@ -112,7 +112,8 @@ class Legendre(FunctionSpace):
         raise NotImplementedError
 
     def mass_matrix(self):
-        raise NotImplementedError
+        a2e = lambda r, s: sp.integrate(self.basis_function(s)*self.basis_function(r), (x, -1, 1))
+        
 
     def eval(self, uh, xj):
         xj = np.atleast_1d(xj)
