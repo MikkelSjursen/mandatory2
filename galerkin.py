@@ -114,14 +114,20 @@ class Legendre(FunctionSpace):
 
     #denne ma endres
     def mass_matrix(self):
-        a2e  = lambda r, s: sp.integrate(self.basis_function(s)*self.basis_function(r), (x, -1, 1))
-        return a2e
+        # Using numerical integration to compute entries of the mass matrix
+        
+        
+        return sparse.diags([self.L2_norm_sq(i) for i in range(self.N+1)], [0], (self.N+1, self.N+1), format='csr')
 
     def eval(self, uh, xj):
         xj = np.atleast_1d(xj)
         Xj = map_reference_domain(xj, self.domain, self.reference_domain)
         return np.polynomial.legendre.legval(Xj, uh)
 
+    @property
+    def reference_domain(self):
+        return (-1,1)
+    
 
 class Chebyshev(FunctionSpace):
 
@@ -143,10 +149,10 @@ class Chebyshev(FunctionSpace):
         #square of L2 norm for Chebyshev poly
         cj = lambda j: 2 if j == 0 else 1
         Tj = lambda j, x: sp.cos(j * sp.acos(x))
-        return cj(j)*sp.pi*sp.S.Half
+        return cj(N)*sp.pi*sp.S.Half
 
     def mass_matrix(self):
-        raise NotImplementedError
+        return sparse.diags([self.L2_norm_sq(self.N+1)], [0], (self.N+1, self.N+1), format='csr')
 
     def eval(self, uh, xj):
         xj = np.atleast_1d(xj)
@@ -168,6 +174,10 @@ class Chebyshev(FunctionSpace):
             def uv(Xj, j): return us(Xj) * basis(j, Xj)
             uj[i] = float(h) * quad(uv, 0, np.pi, args=(i,))[0]
         return uj
+    
+    @property
+    def reference_domain(self):
+        return (-1,1)
 
 class Trigonometric(FunctionSpace):
     """Base class for trigonometric function spaces"""
