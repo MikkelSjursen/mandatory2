@@ -108,12 +108,14 @@ class Legendre(FunctionSpace):
     def derivative_basis_function(self, j, k=1):
         return self.basis_function(j).deriv(k)
 
+    #denne ma nook endres
     def L2_norm_sq(self, N):
-        raise NotImplementedError
+        return sp.Rational(2, 2*N+1)  #square of hte L2 norm for Legendre poly
 
+    #denne ma endres
     def mass_matrix(self):
-        a2e = lambda r, s: sp.integrate(self.basis_function(s)*self.basis_function(r), (x, -1, 1))
-        
+        a2e  = lambda r, s: sp.integrate(self.basis_function(s)*self.basis_function(r), (x, -1, 1))
+        return a2e
 
     def eval(self, uh, xj):
         xj = np.atleast_1d(xj)
@@ -138,7 +140,10 @@ class Chebyshev(FunctionSpace):
         return 1/sp.sqrt(1-x**2)
 
     def L2_norm_sq(self, N):
-        raise NotImplementedError
+        #square of L2 norm for Chebyshev poly
+        cj = lambda j: 2 if j == 0 else 1
+        Tj = lambda j, x: sp.cos(j * sp.acos(x))
+        return cj(j)*sp.pi*sp.S.Half
 
     def mass_matrix(self):
         raise NotImplementedError
