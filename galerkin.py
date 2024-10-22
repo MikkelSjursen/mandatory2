@@ -108,16 +108,16 @@ class Legendre(FunctionSpace):
     def derivative_basis_function(self, j, k=1):
         return self.basis_function(j).deriv(k)
 
-    #denne ma nook endres
+    
     def L2_norm_sq(self, N):
-        return sp.Rational(2, 2*N+1)  #square of hte L2 norm for Legendre poly
+        return 2/(2*N+1)  #square of the L2 norm for Legendre poly
 
     #denne ma endres
     def mass_matrix(self):
-        # Using numerical integration to compute entries of the mass matrix
-        
-        
-        return sparse.diags([self.L2_norm_sq(i) for i in range(self.N+1)], [0], (self.N+1, self.N+1), format='csr')
+        diagonal_elements = [float(self.L2_norm_sq(i)) for i in range(self.N + 1)]
+        A_np = np.diag(diagonal_elements)
+        A_sparse = sparse.csr_matrix(A_np)
+        return A_sparse
 
     def eval(self, uh, xj):
         xj = np.atleast_1d(xj)
@@ -152,7 +152,10 @@ class Chebyshev(FunctionSpace):
         return cj(N)*sp.pi*sp.S.Half
 
     def mass_matrix(self):
-        return sparse.diags([self.L2_norm_sq(self.N+1)], [0], (self.N+1, self.N+1), format='csr')
+        diagonal_elements = [float(self.L2_norm_sq(i)) for i in range(self.N + 1)]
+        A_np = np.diag(diagonal_elements)
+        A_sparse = sparse.csr_matrix(A_np)
+        return A_sparse
 
     def eval(self, uh, xj):
         xj = np.atleast_1d(xj)
