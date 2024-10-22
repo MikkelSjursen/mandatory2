@@ -308,7 +308,9 @@ class DirichletLegendre(Composite, Legendre):
         self.S = sparse.diags((1, -1), (0, 2), shape=(N+1, N+3), format='csr')
 
     def basis_function(self, j, sympy=False):
-        raise NotImplementedError
+        if sympy:
+            return sp.legendre(j) -sp.legendre(j+2)
+        return Leg.basis(j) - Leg.basis(j+2) #as suggested in lecture 11
 
 
 class NeumannLegendre(Composite, Legendre):
