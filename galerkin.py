@@ -113,7 +113,7 @@ class Legendre(FunctionSpace):
     def L2_norm_sq(self, N):
         return 2/(2*N+1)  #square of the L2 norm for Legendre poly
 
-    #denne ma endres
+    
     def mass_matrix(self):
         diagonal_elements = [float(self.L2_norm_sq(i)) for i in range(self.N + 1)]
         A_np = np.diag(diagonal_elements)
@@ -149,7 +149,7 @@ class Chebyshev(FunctionSpace):
     def L2_norm_sq(self, N):
         #square of L2 norm for Chebyshev poly
         cj = lambda j: 2 if j == 0 else 1
-        Tj = lambda j, x: sp.cos(j * sp.acos(x))
+        
         return cj(N)*np.pi/2
 
     def mass_matrix(self):
@@ -234,19 +234,21 @@ class Cosines(Trigonometric):
     def basis_function(self, j, sympy=False):
     
         if sympy:
-            return sp.cos(sp.pi *j*(x+1)/2)
-        return lambda Xj: np.cos(np.pi *j*(Xj+1)/2)
+            return sp.cos(sp.pi *j*(x+1))
+        return lambda Xj: np.cos(np.pi *j*(Xj+1))
 
     def derivative_basis_function(self, j, k=1):
-        scale = ((j*np.pi)/2)**k * {0: 1, 1: -1}[((k+1)//2) % 2]
+        scale = ((j*np.pi))**k * {0: 1, 1: -1}[((k+1)//2) % 2]
         if k % 2 == 0:
-            return lambda Xj: scale*np.cos(np.pi *j*(Xj+1)/2)
+            return lambda Xj: scale*np.cos(np.pi *j*(Xj+1))
         else:
-            return lambda Xj: scale*np.sin(np.pi *j*(Xj+1)/2)
+            return lambda Xj: scale*np.sin(np.pi *j*(Xj+1))
 
 
     def L2_norm_sq(self, N):
-        return 1
+        if N == 0:
+            return 1
+        return 0.5
     
     
 
@@ -340,7 +342,7 @@ class NeumannLegendre(Composite, Legendre):
             A[j,j] = 1
         
         self.S = sparse.csr_matrix(A)
-        self.constraint = constraint #kanskje sånn man skal gjøre det og implementere den i indreproduktet.
+        self.constraint = constraint 
         
 
     def basis_function(self, j, sympy=False):
@@ -431,6 +433,8 @@ def assemble_generic_matrix(u, v):
          'wvar': (-0.5, -0.5) if cheb else None}
     def uv(Xj, i, j): return (V.evaluate_derivative_basis_function(Xj, i, k=v.num_derivatives) *
                               V.evaluate_derivative_basis_function(Xj, j, k=u.num_derivatives))
+    
+        
     for i in range(V.N+1):
         for j in range(i if symmetric else 0, V.N+1):
             D[i, j] = quad(uv, float(r[0]), float(r[1]), args=(i, j), **w)[0]
@@ -478,7 +482,7 @@ def test_project():
             f'test_project: L2 error = {err:2.4e}, N = {V.N}, {V.__class__.__name__}')
         assert err < 1e-6
 
-#NeumannChebyshev,
+
 def test_helmholtz():
     ue = sp.besselj(0, x)
     f = ue.diff(x, 2)+ue
@@ -496,6 +500,7 @@ def test_helmholtz():
         u = TrialFunction(V)
         v = TestFunction(V)
         A = inner(u.diff(2), v) + inner(u, v)
+        
         b = inner(f-(V.B.x.diff(x, 2)+V.B.x), v)
         u_tilde = np.linalg.solve(A, b)
         
@@ -525,6 +530,6 @@ def test_convection_diffusion():
 
 
 if __name__ == '__main__':
-    #test_project()
-    #test_convection_diffusion()
+    test_project()
+    test_convection_diffusion()
     test_helmholtz()
